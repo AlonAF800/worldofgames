@@ -6,6 +6,4 @@ COPY . /app
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY Scores.txt /Scores.txt
-
-CMD ["python", "app.py"]
+CMD ["python", "/app/app.py"]
