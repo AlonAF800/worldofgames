@@ -26,6 +26,7 @@ pipeline {
         stage('Test') {
             steps {
                 script {
+                    sh 'sleep 5' // Give container some time to start
                     sh 'docker exec worldofgames python /app/e2e.py'
                 }
             }
