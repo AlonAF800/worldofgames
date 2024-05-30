@@ -2,10 +2,19 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials-id')
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
     }
 
     stages {
+        stage('Verify Docker Installation') {
+            steps {
+                script {
+                    sh 'which docker'
+                    sh 'docker --version'
+                    sh 'docker info'
+                }
+            }
+        }
         stage('Checkout SCM') {
             steps {
                 checkout scm
@@ -14,9 +23,7 @@ pipeline {
         stage('Build') {
             steps {
                 script {
-                    docker.withRegistry('https://index.docker.io/v1/', DOCKERHUB_CREDENTIALS) {
-                        def app = docker.build("alonaf800/worldofgames")
-                    }
+                    sh 'docker build -t alonaf800/worldofgames .'
                 }
             }
         }
@@ -24,7 +31,7 @@ pipeline {
             steps {
                 script {
                     sh 'docker ps -aq -f name=worldofgames | grep -q . && docker stop worldofgames && docker rm -f worldofgames || true'
-                    sh 'docker run -d -p 8777:8777 --name worldofgames alonaf800/worldofgames:latest'
+                    sh 'docker run -d -p 8777:8777 -v /Users/alonberger/.jenkins/workspace/world-of-games-pipeline/Scores.txt:/Scores.txt --name worldofgames alonaf800/worldofgames:latest'
                     sleep 5 // Give the container some time to start
                     def status = sh(script: 'docker inspect --format={{.State.Status}} worldofgames', returnStdout: true).trim()
                     if (status != 'running') {
@@ -32,6 +39,8 @@ pipeline {
                         sh 'docker logs worldofgames'
                         error('Container is not running')
                     }
+                    // List the contents of /app directory
+                    sh 'docker exec worldofgames ls -la /app'
                 }
             }
         }
@@ -43,14 +52,12 @@ pipeline {
             }
         }
     }
-
     post {
         always {
             script {
-                echo 'Final container logs:'
-                sh 'docker logs worldofgames || true'
+                sh 'docker stop worldofgames || true'
+                sh 'docker rm -f worldofgames || true'
             }
-            cleanWs()
         }
     }
 }
