@@ -34,10 +34,11 @@ pipeline {
         stage('Run') {
             steps {
                 script {
-                    // Remove existing container if it exists
+                    // Stop and remove existing container if it exists
                     sh '''
                     if [ "$(docker ps -aq -f name=worldofgames)" ]; then
-                        docker rm -f worldofgames
+                        docker stop worldofgames || true
+                        docker rm -f worldofgames || true
                     fi
                     '''
                     // Run the new container
@@ -48,16 +49,15 @@ pipeline {
         stage('Test') {
             steps {
                 script {
-                    dockerImage.inside {
-                        sh 'python e2e.py'
-                    }
+                    sh 'docker exec worldofgames python /app/e2e.py'
                 }
             }
         }
         stage('Finalize') {
             steps {
                 script {
-                    sh 'docker-compose down'
+                    sh 'docker stop worldofgames || true'
+                    sh 'docker rm -f worldofgames || true'
                     docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-credentials-id') {
                         dockerImage.push()
                     }
@@ -65,9 +65,4 @@ pipeline {
             }
         }
     }
-    post {
-        always {
-            cleanWs()
-        }
-    }
-}
+
