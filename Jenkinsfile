@@ -41,4 +41,33 @@ pipeline {
                     fi
                     '''
                     // Run the new container
-                    sh 'docker run -d -p 8777:8777 -v /Users/alonberger/.jenkins/workspace/world-of-games-pipeline/Scores.txt:/Scor
+                    sh 'docker run -d -p 8777:8777 -v /Users/alonberger/.jenkins/workspace/world-of-games-pipeline/Scores.txt:/Scores.txt --name worldofgames worldofgames:latest'
+                }
+            }
+        }
+        stage('Test') {
+            steps {
+                script {
+                    dockerImage.inside {
+                        sh 'python e2e.py'
+                    }
+                }
+            }
+        }
+        stage('Finalize') {
+            steps {
+                script {
+                    sh 'docker-compose down'
+                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-credentials-id') {
+                        dockerImage.push()
+                    }
+                }
+            }
+        }
+    }
+    post {
+        always {
+            cleanWs()
+        }
+    }
+}
