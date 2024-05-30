@@ -7,8 +7,10 @@ pipeline {
     }
 
     stages {
-        stage('Verify Docker') {
+        stage('Print Environment') {
             steps {
+                sh 'printenv'
+                sh 'which docker'
                 sh 'docker --version'
             }
         }
@@ -22,7 +24,7 @@ pipeline {
         stage('Build') {
             steps {
                 script {
-                    docker.build(DOCKER_IMAGE)
+                    sh 'docker build -t ${DOCKER_IMAGE} .'
                 }
             }
         }
@@ -30,7 +32,7 @@ pipeline {
         stage('Run') {
             steps {
                 script {
-                    docker.image(DOCKER_IMAGE).run("-p 8777:8777 -v $WORKSPACE/Scores.txt:/Scores.txt --name worldofgames")
+                    sh 'docker run -p 8777:8777 -v $WORKSPACE/Scores.txt:/Scores.txt --name worldofgames ${DOCKER_IMAGE}'
                 }
             }
         }
@@ -51,7 +53,7 @@ pipeline {
                 script {
                     sh 'docker stop worldofgames'
                     sh 'docker rm worldofgames'
-                    docker.image(DOCKER_IMAGE).push(DOCKER_HUB_REPO)
+                    sh 'docker push ${DOCKER_HUB_REPO}'
                 }
             }
         }
