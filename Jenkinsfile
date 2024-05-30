@@ -32,14 +32,14 @@ pipeline {
                 script {
                     sh 'docker ps -aq -f name=worldofgames | grep -q . && docker stop worldofgames && docker rm -f worldofgames || true'
                     sh 'docker run -d -p 8777:8777 -v /Users/alonberger/.jenkins/workspace/world-of-games-pipeline/Scores.txt:/Scores.txt --name worldofgames alonaf800/worldofgames:latest'
-                    sleep 10 // Give the container some time to start
+                    sleep 10 //
                     def status = sh(script: 'docker inspect --format={{.State.Status}} worldofgames', returnStdout: true).trim()
                     if (status != 'running') {
                         echo 'Container logs:'
                         sh 'docker logs worldofgames'
                         error('Container is not running')
                     }
-                    // List the contents of /app directory
+                    //
                     sh 'docker exec worldofgames ls -la /app'
                 }
             }
