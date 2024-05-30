@@ -6,6 +6,7 @@ pipeline {
             steps {
                 script {
                     try {
+                        sh 'which docker'
                         sh 'docker --version'
                         sh 'docker info'
                     } catch (Exception e) {
