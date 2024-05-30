@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 import os
@@ -42,3 +43,14 @@ if __name__ == "__main__":
     url = "http://localhost:8777"
     exit_code = main_function(url)
     os._exit(exit_code)
+=======
+import requests
+
+def test_homepage():
+    response = requests.get('http://localhost:8777')
+    assert response.status_code == 200
+    assert response.text == 'Hello, World!'
+
+if __name__ == "__main__":
+    test_homepage()
+>>>>>>> ec600e5 (Initial commit)

@@ -6,10 +6,4 @@ COPY . /app
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-EXPOSE 8777
-
-COPY Scores.txt /Scores.txt
-
-ENV NAME WorldOfGames
-
 CMD ["python", "app.py"]

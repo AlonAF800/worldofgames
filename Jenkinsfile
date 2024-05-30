@@ -2,58 +2,31 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = "worldofgames:latest"
-        DOCKER_HUB_REPO = "alonaf800/worldofgames"
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials-id')
     }
 
     stages {
-        stage('Print Environment') {
-            steps {
-                sh 'printenv'
-                sh 'which docker'
-                sh 'docker --version'
-            }
-        }
-
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
-
         stage('Build') {
             steps {
                 script {
-                    sh 'docker build -t ${DOCKER_IMAGE} .'
-                }
-            }
-        }
-
-        stage('Run') {
-            steps {
-                script {
-                    sh 'docker run -p 8777:8777 -v $WORKSPACE/Scores.txt:/Scores.txt --name worldofgames ${DOCKER_IMAGE}'
-                }
-            }
-        }
-
-        stage('Test') {
-            steps {
-                script {
-                    def result = sh(script: 'python e2e.py', returnStatus: true)
-                    if (result != 0) {
-                        error "Tests failed"
+                    docker.withRegistry('https://index.docker.io/v1/', DOCKERHUB_CREDENTIALS) {
+                        def app = docker.build("alonaf800/worldofgames")
                     }
                 }
             }
         }
-
-        stage('Finalize') {
+        stage('Run') {
             steps {
                 script {
-                    sh 'docker stop worldofgames'
-                    sh 'docker rm worldofgames'
-                    sh 'docker push ${DOCKER_HUB_REPO}'
+                    sh 'docker ps -aq -f name=worldofgames | grep -q . && docker stop worldofgames && docker rm -f worldofgames || true'
+                    sh 'docker run -d -p 8777:8777 -v /Users/alonberger/.jenkins/workspace/world-of-games-pipeline/Scores.txt:/Scores.txt --name worldofgames alonaf800/worldofgames:latest'
+                }
+            }
+        }
+        stage('Test') {
+            steps {
+                script {
+                    sh 'docker exec worldofgames python /app/e2e.py'
                 }
             }
         }
