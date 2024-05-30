@@ -41,6 +41,9 @@ pipeline {
 
     post {
         always {
+            script {
+                sh 'docker logs worldofgames || true'
+            }
             cleanWs()
         }
     }
