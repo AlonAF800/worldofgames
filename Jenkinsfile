@@ -6,6 +6,11 @@ pipeline {
     }
 
     stages {
+        stage('Checkout SCM') {
+            steps {
+                checkout scm
+            }
+        }
         stage('Build') {
             steps {
                 script {
@@ -19,7 +24,7 @@ pipeline {
             steps {
                 script {
                     sh 'docker ps -aq -f name=worldofgames | grep -q . && docker stop worldofgames && docker rm -f worldofgames || true'
-                    sh 'docker run -d -p 8777:8777 -v /Users/alonberger/.jenkins/workspace/world-of-games-pipeline/Scores.txt:/Scores.txt --name worldofgames worldofgames:latest'
+                    sh 'docker run -d -p 8777:8777 -v /Users/alonberger/Downloads/worldofgames_project:/app --name worldofgames worldofgames:latest'
                     sleep 5 // Give the container some time to start
                     def status = sh(script: 'docker inspect --format={{.State.Status}} worldofgames', returnStdout: true).trim()
                     if (status != 'running') {
