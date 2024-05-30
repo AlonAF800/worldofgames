@@ -27,6 +27,11 @@ pipeline {
             steps {
                 script {
                     sh 'sleep 5' // Give container some time to start
+                    def status = sh(script: 'docker inspect --format={{.State.Status}} worldofgames', returnStdout: true).trim()
+                    if (status != 'running') {
+                        sh 'docker logs worldofgames'
+                        error('Container is not running')
+                    }
                     sh 'docker exec worldofgames python /app/e2e.py'
                 }
             }
