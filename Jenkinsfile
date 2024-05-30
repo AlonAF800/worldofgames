@@ -1,10 +1,26 @@
 pipeline {
     agent any
 
+    environment {
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials-id') // Replace with your credentials ID
+    }
+
     stages {
-        stage('Checkout') {
+        stage('Checkout SCM') {
             steps {
                 checkout scm
+            }
+        }
+        stage('Verify Docker Installation') {
+            steps {
+                script {
+                    try {
+                        sh 'docker --version'
+                        sh 'docker info'
+                    } catch (Exception e) {
+                        error "Docker is not installed or not accessible."
+                    }
+                }
             }
         }
         stage('Build') {
@@ -36,7 +52,9 @@ pipeline {
             steps {
                 script {
                     sh 'docker-compose down'
-                    dockerImage.push()
+                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-credentials-id') {
+                        dockerImage.push()
+                    }
                 }
             }
         }
