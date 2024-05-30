@@ -1,4 +1,4 @@
- pipeline {
+pipeline {
     agent any
 
     environment {
@@ -42,6 +42,7 @@
     post {
         always {
             script {
+                echo 'Final container logs:'
                 sh 'docker logs worldofgames || true'
             }
             cleanWs()
