@@ -26,9 +26,10 @@ pipeline {
         stage('Test') {
             steps {
                 script {
-                    sh 'sleep 5' // Give container some time to start
+                    sleep 5 // Give the container some time to start
                     def status = sh(script: 'docker inspect --format={{.State.Status}} worldofgames', returnStdout: true).trim()
                     if (status != 'running') {
+                        echo 'Container logs:'
                         sh 'docker logs worldofgames'
                         error('Container is not running')
                     }
