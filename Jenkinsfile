@@ -1,6 +1,11 @@
 pipeline {
     agent any
 
+    environment {
+        DOCKER_IMAGE = "worldofgames:latest"
+        DOCKER_HUB_REPO = "alonaf800/worldofgames"
+    }
+
     stages {
         stage('Checkout') {
             steps {
@@ -11,7 +16,7 @@ pipeline {
         stage('Build') {
             steps {
                 script {
-                    docker.build("worldofgames:latest")
+                    docker.build(DOCKER_IMAGE)
                 }
             }
         }
@@ -19,7 +24,7 @@ pipeline {
         stage('Run') {
             steps {
                 script {
-                    docker.image("worldofgames:latest").run("-p 8777:8777 -v $PWD/Scores.txt:/Scores.txt --name worldofgames")
+                    docker.image(DOCKER_IMAGE).run("-p 8777:8777 -v $WORKSPACE/Scores.txt:/Scores.txt --name worldofgames")
                 }
             }
         }
@@ -40,9 +45,15 @@ pipeline {
                 script {
                     sh 'docker stop worldofgames'
                     sh 'docker rm worldofgames'
-                    docker.image("worldofgames:latest").push("alonaf800/worldofgames:latest")
+                    docker.image(DOCKER_IMAGE).push(DOCKER_HUB_REPO)
                 }
             }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()
         }
     }
 }
